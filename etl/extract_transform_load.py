@@ -32,7 +32,7 @@ for _, row in df.iterrows():
         "lieferadresse": row["Lieferadresse"],
         "zahlbetrag": row["Zahlbetrag"],
         "country_code": row["Country_Code"],
-        "order_date": pd.to_datetime(row["Order_Date"], errors='coerce').date()
+        "order_date": pd.to_datetime(row["Order_Date"], dayfirst=True, errors='coerce').date()
     }
     orders.append(order)
 
@@ -49,8 +49,12 @@ for _, row in df.iterrows():
             })
 
 # Create DataFrames
-df_orders = pd.DataFrame(orders).drop_duplicates(subset=["bestellnummer"])
+df_orders = pd.DataFrame(orders).drop_duplicates()
+df_orders = df_orders.dropna(subset=["bestellnummer"])
 df_items = pd.DataFrame(items)
+
+# Drop rows with missing 'bestellnummer' before insert
+df_orders = df_orders.dropna(subset=["bestellnummer"])
 
 # Upload orders
 df_orders.to_sql("excel_orders", engine, if_exists="append", index=False)
